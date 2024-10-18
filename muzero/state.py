@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from dataclasses import dataclass
 import gym
 from typing import Tuple
@@ -9,9 +10,9 @@ patch_typeguard()
 
 @dataclass
 class State:
-    observation: TensorType["channels", "height", "width"]
+    observation: np.ndarray  # Keep observation as a NumPy array
     hidden_state: TensorType["hidden_size"] | None = None
-    environment: gym.Env = None  # Add environment to the state
+    environment: gym.Env = None  # Include environment in the state
 
     @typechecked
     def is_terminal(self) -> bool:

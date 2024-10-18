@@ -1126,6 +1126,20 @@ files = [
 ]
 
 [[package]]
+name = "gym-super-mario-bros"
+version = "7.4.0"
+description = "Super Mario Bros. for OpenAI Gym"
+optional = false
+python-versions = "*"
+files = [
+    {file = "gym_super_mario_bros-7.4.0-py3-none-any.whl", hash = "sha256:5aa094115a32ed3d7f2eb044bc24486888af4f878695c9f26c7383a80c744602"},
+    {file = "gym_super_mario_bros-7.4.0.tar.gz", hash = "sha256:9330e6e4f75b4405125abffb35bf1338b9027d2d87e7d4504e2cf05269541ac7"},
+]
+
+[package.dependencies]
+nes-py = ">=8.1.4"
+
+[[package]]
 name = "gymnasium"
 version = "0.29.1"
 description = "A standard API for reinforcement learning and a diverse set of reference environments (formerly Gym)."
@@ -1969,6 +1983,23 @@ files = [
 dill = ">=0.3.9"
 
 [[package]]
+name = "nes-py"
+version = "8.2.1"
+description = "An NES Emulator and OpenAI Gym interface"
+optional = false
+python-versions = "*"
+files = [
+    {file = "nes_py-8.2.1-cp39-cp39-macosx_11_0_x86_64.whl", hash = "sha256:3fc6502a9eb502fe0af3848e9a2669f2eda5d9087a411214d3d330b24a2fea43"},
+    {file = "nes_py-8.2.1.tar.gz", hash = "sha256:82f6cb9a6f065fb4b248951a6e334cfeb2a3c83316b7c95cfe3dbe176e6c854a"},
+]
+
+[package.dependencies]
+gym = ">=0.17.2"
+numpy = ">=1.18.5"
+pyglet = ">=1.4.0,<=1.5.21"
+tqdm = ">=4.48.2"
+
+[[package]]
 name = "networkx"
 version = "3.4.1"
 description = "Python package for creating and manipulating graphs and networks"
@@ -2402,6 +2433,31 @@ readme = ["path (>=13,<17)", "readmemaker (>=1.1.0)"]
 test = ["Faker (>=1.0.8)", "allpairspy (>=2)", "click (>=6.2)", "pytest (>=6.0.1)", "pytest-md-report (>=0.6.2)"]
 
 [[package]]
+name = "pettingzoo"
+version = "1.24.3"
+description = "Gymnasium for multi-agent reinforcement learning."
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "pettingzoo-1.24.3-py3-none-any.whl", hash = "sha256:23ed90517d2e8a7098bdaf5e31234b3a7f7b73ca578d70d1ca7b9d0cb0e37982"},
+    {file = "pettingzoo-1.24.3.tar.gz", hash = "sha256:91f9094f18e06fb74b98f4099cd22e8ae4396125e51719d50b30c9f1c7ab07e6"},
+]
+
+[package.dependencies]
+gymnasium = ">=0.28.0"
+numpy = ">=1.21.0"
+
+[package.extras]
+all = ["box2d-py (==2.3.5)", "chess (==1.9.4)", "multi-agent-ale-py (==0.1.11)", "pillow (>=8.0.1)", "pygame (==2.3.0)", "pymunk (==6.2.0)", "rlcard (==1.0.5)", "scipy (>=1.4.1)", "shimmy[openspiel] (>=1.2.0)"]
+atari = ["multi-agent-ale-py (==0.1.11)", "pygame (==2.3.0)"]
+butterfly = ["pygame (==2.3.0)", "pymunk (==6.2.0)"]
+classic = ["chess (==1.9.4)", "pygame (==2.3.0)", "rlcard (==1.0.5)", "shimmy[openspiel] (>=1.2.0)"]
+mpe = ["pygame (==2.3.0)"]
+other = ["pillow (>=8.0.1)"]
+sisl = ["box2d-py (==2.3.5)", "pygame (==2.3.0)", "pymunk (==6.2.0)", "scipy (>=1.4.1)"]
+testing = ["AutoROM", "pre-commit", "pynput", "pytest", "pytest-cov", "pytest-markdown-docs", "pytest-xdist"]
+
+[[package]]
 name = "pillow"
 version = "11.0.0"
 description = "Python Imaging Library (Fork)"
@@ -2784,6 +2840,17 @@ files = [
     {file = "pygame-2.6.1-pp39-pypy39_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:17498a2b043bc0e795faedef1b081199c688890200aef34991c1941caa2d2c89"},
     {file = "pygame-2.6.1-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7103c60939bbc1e05cfc7ba3f1d2ad3bbf103b7828b82a7166a9ab6f51950146"},
     {file = "pygame-2.6.1.tar.gz", hash = "sha256:56fb02ead529cee00d415c3e007f75e0780c655909aaa8e8bf616ee09c9feb1f"},
+]
+
+[[package]]
+name = "pyglet"
+version = "1.5.21"
+description = "Cross-platform windowing and multimedia library"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyglet-1.5.21-py3-none-any.whl", hash = "sha256:11f11ddda4ee456284f2ddd1fe5c62fe29ba8c42074d3d9ae52d094abc2e1b7c"},
+    {file = "pyglet-1.5.21.zip", hash = "sha256:5aaaddb06dc4b6f9ba08254d8d806a2bd2406925a9caf3a51fdffbd5d09728e2"},
 ]
 
 [[package]]
@@ -4520,4 +4587,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "ac83ee10f890a3fa1d93951d0ef65990e7587bf843d3fd8025cb3f7187498d9a"
+content-hash = "2a230ee288c4c55416b3ea137edda661a8078e95cb39f8192e711295424b6872"

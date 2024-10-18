@@ -16,6 +16,8 @@ huggingface-tool = "^0.0.6"
 rl-zoo3 = "^2.3.0"
 torchtyping = "^0.1.5"
 typeguard = "^2.13.3"
+pettingzoo = "^1.24.3"
+gym-super-mario-bros = "^7.4.0"
 
 
 [build-system]

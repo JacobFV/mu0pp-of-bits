@@ -188,12 +188,14 @@ class MuZeroAgent:
             for step in trajectory:
                 observation, action, reward, done, mcts_info = step
 
+                # Processing the observation for the Super Mario environment
+                obs_tensor = torch.from_numpy(observation).float().unsqueeze(0)  # Shape: [1, H, W, C]
+                # Permute dimensions to match [batch_size, channels, height, width]
+                obs_tensor = obs_tensor.permute(0, 3, 1, 2)
+
                 # ====================
                 # Forward Pass
                 # ====================
-                # Compute hidden state: s_k = h_θ(o_k)
-                obs_tensor = torch.from_numpy(observation).float().unsqueeze(0)
-
                 # Compute hidden state: s_k = h_θ(o_k)
                 hidden_state = self.network.representation(obs_tensor)
 
@@ -265,52 +267,27 @@ class MuZeroAgent:
     def initial_state(self) -> State:
         """
         Initialize the starting state s₀ of the environment.
-        
-        Returns:
-            state (State): The initial state object.
-        
-        Mathematical Representation:
-            s₀ = h_θ(o₀)
         """
-        # Unpack the observation and info from the environment reset
+        # Reset the environment and get the initial observation
         initial_observation, info = self.environment.reset()
-        print("Initial observation:", initial_observation)
-        print("Info:", info)
-        
-        # Use the initial_observation directly as your observation data
-        observation_data = initial_observation
+        observation_data_np = np.array(initial_observation)
 
-        print("Observation data before conversion:", observation_data)
-        
-        # Convert observation_data to a NumPy array if it isn't already one
-        if isinstance(observation_data, np.ndarray):
-            observation_data_np = observation_data
-        elif isinstance(observation_data, list):
-            observation_data_np = np.array(observation_data)
-        else:
-            # Handle other data types (e.g., torch tensors, scalars)
-            observation_data_np = np.array([observation_data])
-        
-        print("Observation data shape:", observation_data_np.shape)
-        
-        # Check if the data has the expected shape
-        if observation_data_np.size == 0:
-            raise ValueError("Observation data is empty. Cannot proceed.")
-        
-        # Convert the data into a tensor
-        observation_tensor: TensorType["batch", "channels", "height", "width"] = torch.from_numpy(observation_data_np).float()
-        
-        # Add batch dimension if necessary
-        if observation_tensor.dim() == 1:
-            observation_tensor = observation_tensor.unsqueeze(0)
-        
+        # Convert to tensor and reshape
+        observation_tensor = torch.from_numpy(observation_data_np).float().unsqueeze(0)  # Shape: [1, H, W, C]
+        # Permute dimensions to match [batch_size, channels, height, width]
+        observation_tensor = observation_tensor.permute(0, 3, 1, 2)  # Now shape is [1, C, H, W]
+
         print("Observation tensor shape:", observation_tensor.shape)
-        
+
         # Apply the representation function h_θ to get the initial hidden state
         initial_hidden_state: TensorType["hidden_size"] = self.network.representation(observation_tensor)
-        
+
         # Create and return a State object with the environment
-        return State(observation=initial_observation, hidden_state=initial_hidden_state, environment=self.environment)
+        return State(
+            observation=initial_observation,
+            hidden_state=initial_hidden_state,
+            environment=self.environment
+        )
     
     # ====================
     # Auxiliary Functions
@@ -377,3 +354,4 @@ class MuZeroAgent:
             reward_target (torch.Tensor): Scalar reward target.
         """
         return torch.tensor([reward], dtype=torch.float32)
+

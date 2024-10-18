@@ -19,7 +19,8 @@ class MuZeroNetwork(nn.Module):
             nn.ReLU(),
             nn.Conv2d(64, 64, kernel_size=3, stride=1),
             nn.ReLU(),
-            nn.Flatten()
+            nn.Flatten(),
+            nn.Linear(64 * config.board_size**2, config.hidden_size)  # Adjust H and W based on your input dimensions
             # Output will be flattened to a vector
         )
 

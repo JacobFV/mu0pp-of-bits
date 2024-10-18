@@ -1,7 +1,11 @@
 import gym
 from muzero.agent import MuZeroAgent
 from muzero.config import MuZeroConfig
+from torchtyping import TensorType, patch_typeguard
+from typeguard import typechecked
+from typing import Tuple
 
+patch_typeguard()
 
 if __name__ == "__main__":
     # Initialize the gym environment

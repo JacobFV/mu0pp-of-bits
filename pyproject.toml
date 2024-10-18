@@ -1,9 +1,10 @@
 [tool.poetry]
-name = "mu0pp-of-bits"
+name = "muzero"
 version = "0.1.0"
 description = ""
 authors = ["Jacob Valdez <jacob@deepshard.org>"]
 readme = "README.md"
+packages = [{ include = "muzero" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -11,8 +12,13 @@ torch = "^2.5.0"
 torchvision = "^0.20.0"
 torchaudio = "^2.5.0"
 openrl = "^0.2.0"
+huggingface-tool = "^0.0.6"
+rl-zoo3 = "^2.3.0"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+run = "muzero.main:main"

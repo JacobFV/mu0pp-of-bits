@@ -1,9 +1,11 @@
 import math
 import random
+from typing import Dict, List, Tuple
 
 import torch
+from torchtyping import TensorType
 
-def run_mcts(root, network, config):
+def run_mcts(root: 'Node', network: 'MuZeroNetwork', config: 'MuZeroConfig') -> None:
     """
     Perform Monte Carlo Tree Search (MCTS) simulations to expand and evaluate the search tree.
     
@@ -89,7 +91,7 @@ def run_mcts(root, network, config):
         backpropagate(search_path, v_k, config)
 
 
-def backpropagate(search_path, value, config):
+def backpropagate(search_path: List['Node'], value: float, config: 'MuZeroConfig') -> None:
     """
     Backpropagate the value estimate up the search path, updating visit counts and value sums.
     
@@ -127,7 +129,7 @@ def backpropagate(search_path, value, config):
 
 
 class Node:
-    def __init__(self, state):
+    def __init__(self, state: 'State'):
         """
         Initialize a tree node representing a latent state s_k.
         
@@ -137,15 +139,15 @@ class Node:
         Mathematical Representation:
             s_k ∈ ℝ^{|h|}
         """
-        self.state = state  # Latent state s_k ∈ ℝ^{|h|}
-        self.hidden_state = None  # Hidden state representation h_θ(s_k)
-        self.reward = 0  # Immediate reward r_k obtained from transition to s_k.
-        self.visit_count = 0  # Visit count N(s_k, a_k)
-        self.value_sum = 0  # Total value W(s_k, a_k)
-        self.children = {}  # Child nodes for each action a ∈ A
-        self.parent = None  # Parent node in the search tree
-        self.parent_action = None  # Action a_k taken to reach this node
-        self.prior = 0  # Prior probability P(s_k, a_k) from the policy π̂_k
+        self.state: 'State' = state  # Latent state s_k ∈ ℝ^{|h|}
+        self.hidden_state: TensorType["hidden_dim"] | None = None  # Hidden state representation h_θ(s_k)
+        self.reward: float = 0  # Immediate reward r_k obtained from transition to s_k.
+        self.visit_count: int = 0  # Visit count N(s_k, a_k)
+        self.value_sum: float = 0  # Total value W(s_k, a_k)
+        self.children: Dict[int, 'Node'] = {}  # Child nodes for each action a ∈ A
+        self.parent: 'Node' | None = None  # Parent node in the search tree
+        self.parent_action: int | None = None  # Action a_k taken to reach this node
+        self.prior: float = 0  # Prior probability P(s_k, a_k) from the policy π̂_k
     
     def is_expanded(self):
         """
@@ -159,7 +161,7 @@ class Node:
         """
         return len(self.children) > 0
     
-    def expand(self, pi):
+    def expand(self, pi: TensorType["action_space"]):
         """
         Expand the current node by adding child nodes for each possible action.
         
@@ -186,7 +188,7 @@ class Node:
             child.prior = p  # P(s_k, a_k) from the policy network.
             self.children[a] = child
     
-    def child_Q(self, a):
+    def child_Q(self, a: int) -> float:
         """
         Compute the mean action-value Q(s_k, a_k) for a given action a.
         
@@ -207,7 +209,7 @@ class Node:
             return 0
         return self.children[a].value_sum / self.children[a].visit_count  # Q(s_k, a_k) = W / N
     
-    def child_U(self, a, config):
+    def child_U(self, a: int, config: 'MuZeroConfig') -> float:
         """
         Compute the exploration term U(s_k, a_k) for the Upper Confidence Bound formula.
         
@@ -237,7 +239,7 @@ class Node:
             (math.sqrt(total_visits) / (1 + self.children[a].visit_count))
         )
     
-    def value(self):
+    def value(self) -> float:
         """
         Retrieve the mean action-value Q(s_k, a_k) for this node.
         
@@ -249,7 +251,7 @@ class Node:
         return self.value_sum / self.visit_count  # Q(s_k, a_k) = W / N
 
 
-def argmax(dictionary):
+def argmax(dictionary: Dict[int, float]) -> int:
     """
     Return the key with the highest value in the dictionary.
     

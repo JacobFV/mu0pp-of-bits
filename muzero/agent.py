@@ -2,14 +2,20 @@ import torch
 import torch.optim as optim
 import random
 import gym
+import numpy as np
+from typing import List, Tuple
 
 from muzero.network import MuZeroNetwork
 from muzero.mcts import Node, run_mcts
-from muzero.state import State  # Ensure you have a State class
+from muzero.state import State
+from torchtyping import TensorType, patch_typeguard
+from typeguard import typechecked
 
+patch_typeguard()
 
 class MuZeroAgent:
-    def __init__(self, config, environment):
+    @typechecked
+    def __init__(self, config: 'MuZeroConfig', environment: gym.Env):
         """
         Initialize the MuZero agent with the given configuration.
         
@@ -33,12 +39,13 @@ class MuZeroAgent:
         self.optimizer = optim.Adam(self.network.parameters(), lr=self.config.learning_rate)
         
         # Initialize the replay buffer D for storing game experiences.
-        self.replay_buffer = []
+        self.replay_buffer: List[List[Tuple[np.ndarray, int]]] = []
         
         # Initialize other necessary components or variables.
         # Example: self.loss_fn = SomeLossFunction()
     
-    def train(self):
+    @typechecked
+    def train(self) -> None:
         """
         Execute the main training loop consisting of self-play and network parameter updates.
         
@@ -70,7 +77,8 @@ class MuZeroAgent:
             # ====================
             self.update_weights(batch)  # Perform a gradient descent step to minimize L(θ).
     
-    def self_play(self):
+    @typechecked
+    def self_play(self) -> None:
         """
         Generate a single game trajectory through self-play using MCTS.
         
@@ -85,7 +93,7 @@ class MuZeroAgent:
         Mathematical Representation:
             τ = {(s_0, a_0), (s_1, a_1), ..., (s_T, a_T)}
         """
-        game = []
+        game: List[Tuple[np.ndarray, int]] = []
         state = self.initial_state()  # Initialize s₀
         
         while not state.is_terminal():
@@ -106,14 +114,16 @@ class MuZeroAgent:
         # Add the completed game trajectory τ to the replay buffer D.
         self.replay_buffer.append(game)
     
-    def select_action(self, root):
+    @typechecked
+    def select_action(self, root: Node) -> int:
         # Implement your action selection logic
         # Typically, you select the action with the highest visit count
         visit_counts = [(child.visit_count, action) for action, child in root.children.items()]
         _, action = max(visit_counts)
         return action
     
-    def sample_batch(self):
+    @typechecked
+    def sample_batch(self) -> List[List[Tuple[np.ndarray, int]]]:
         """
         Sample a mini-batch of trajectories from the replay buffer D for training.
         
@@ -131,7 +141,8 @@ class MuZeroAgent:
         batch = random.sample(self.replay_buffer, self.config.batch_size)
         return batch
     
-    def update_weights(self, batch):
+    @typechecked
+    def update_weights(self, batch: List[List[Tuple[np.ndarray, int]]]) -> None:
         """
         Update the neural network parameters θ by minimizing the loss function L(θ).
         
@@ -164,52 +175,53 @@ class MuZeroAgent:
         # Zero the gradients from the previous optimization step.
         self.optimizer.zero_grad()
         
-        total_loss = 0
+        total_loss: TensorType["batch_size"] = torch.zeros(len(batch))
         
-        for trajectory in batch:
+        for i, trajectory in enumerate(batch):
             for (observation, action) in trajectory:
                 # ====================
                 # Forward Pass
                 # ====================
                 # Compute hidden state: s_k = h_θ(o_k)
-                hidden_state = self.network.representation(observation)
+                hidden_state: TensorType["hidden_size"] = self.network.representation(observation)
                 
                 # ====================
                 # Prediction
                 # ====================
                 # Obtain policy logits and value estimate: (π̂_k, v̂_k) = f_θ(s_k)
-                policy_logits, value_estimate = self.network.prediction(hidden_state)
+                policy_logits: TensorType["action_space"] = self.network.prediction(hidden_state)[0]
+                value_estimate: TensorType[1] = self.network.prediction(hidden_state)[1]
                 
                 # ====================
                 # Compute Target Values
                 # ====================
                 # Example targets: policy_target = π_k, value_target = v_k
                 # These targets are derived from MCTS visit counts and game outcomes.
-                policy_target = self.compute_policy_target(trajectory)
-                value_target = self.compute_value_target(trajectory)
-                reward_target = self.compute_reward_target(trajectory)
+                policy_target: TensorType["action_space"] = self.compute_policy_target(trajectory)
+                value_target: TensorType[1] = self.compute_value_target(trajectory)
+                reward_target: TensorType[1] = self.compute_reward_target(trajectory)
                 
                 # ====================
                 # Calculate Loss Components
                 # ====================
                 # Value Loss: ℓ^{value}_k = (v̂_k - v_k)^2
-                value_loss = (value_estimate - value_target).pow(2)
+                value_loss: TensorType[1] = (value_estimate - value_target).pow(2)
                 
                 # Policy Loss: ℓ^{policy}_k = - π_k log π̂_k
                 # Using negative log likelihood for cross-entropy loss.
-                policy_loss = -torch.sum(policy_target * torch.log_softmax(policy_logits, dim=-1), dim=-1)
+                policy_loss: TensorType[1] = -torch.sum(policy_target * torch.log_softmax(policy_logits, dim=-1), dim=-1)
                 
                 # Reward Loss: ℓ^{reward}_k = (r̂_k - r_k)^2
                 # Assuming the network has a reward head to predict r̂_k.
-                reward_pred = self.network.reward_head(hidden_state)
-                reward_loss = (reward_pred - reward_target).pow(2)
+                reward_pred: TensorType[1] = self.network.reward_head(hidden_state)
+                reward_loss: TensorType[1] = (reward_pred - reward_target).pow(2)
                 
                 # Aggregate losses
-                loss = value_loss + policy_loss + reward_loss
-                total_loss += loss
+                loss: TensorType[1] = value_loss + policy_loss + reward_loss
+                total_loss[i] += loss
         
         # Average the total loss over the batch.
-        average_loss = total_loss / len(batch)
+        average_loss: TensorType[1] = total_loss.mean()
         
         # ====================
         # Backward Pass and Optimization
@@ -222,7 +234,8 @@ class MuZeroAgent:
         # Update network parameters θ: θ ← θ - α ∇_θ L(θ)
         self.optimizer.step()
     
-    def save_model(self, path):
+    @typechecked
+    def save_model(self, path: str) -> None:
         """
         Persist the model parameters θ to the specified filesystem path.
         
@@ -234,7 +247,8 @@ class MuZeroAgent:
         """
         torch.save(self.network.state_dict(), path)
     
-    def load_model(self, path):
+    @typechecked
+    def load_model(self, path: str) -> None:
         """
         Load the model parameters θ from the specified filesystem path.
         
@@ -246,7 +260,8 @@ class MuZeroAgent:
         """
         self.network.load_state_dict(torch.load(path))
     
-    def initial_state(self):
+    @typechecked
+    def initial_state(self) -> State:
         """
         Initialize the starting state s₀ of the environment.
         
@@ -256,11 +271,42 @@ class MuZeroAgent:
         Mathematical Representation:
             s₀ = h_θ(o₀)
         """
-        # Create an initial observation based on the environment
-        initial_observation = self.environment.reset()
+        # Unpack the observation and info from the environment reset
+        initial_observation, info = self.environment.reset()
+        print("Initial observation:", initial_observation)
+        print("Info:", info)
+        
+        # Use the initial_observation directly as your observation data
+        observation_data = initial_observation
+
+        print("Observation data before conversion:", observation_data)
+        
+        # Convert observation_data to a NumPy array if it isn't already one
+        if isinstance(observation_data, np.ndarray):
+            observation_data_np = observation_data
+        elif isinstance(observation_data, list):
+            observation_data_np = np.array(observation_data)
+        else:
+            # Handle other data types (e.g., torch tensors, scalars)
+            observation_data_np = np.array([observation_data])
+        
+        print("Observation data shape:", observation_data_np.shape)
+        
+        # Check if the data has the expected shape
+        if observation_data_np.size == 0:
+            raise ValueError("Observation data is empty. Cannot proceed.")
+        
+        # Convert the data into a tensor
+        observation_tensor: TensorType["batch", "channels", "height", "width"] = torch.from_numpy(observation_data_np).float()
+        
+        # Add batch dimension if necessary
+        if observation_tensor.dim() == 1:
+            observation_tensor = observation_tensor.unsqueeze(0)
+        
+        print("Observation tensor shape:", observation_tensor.shape)
         
         # Apply the representation function h_θ to get the initial hidden state
-        initial_hidden_state = self.network.representation(torch.tensor(initial_observation).float().unsqueeze(0))
+        initial_hidden_state: TensorType["hidden_size"] = self.network.representation(observation_tensor)
         
         # Create and return a State object
         return State(observation=initial_observation, hidden_state=initial_hidden_state)
@@ -269,7 +315,8 @@ class MuZeroAgent:
     # Auxiliary Functions
     # ====================
     
-    def compute_policy_target(self, trajectory):
+    @typechecked
+    def compute_policy_target(self, trajectory: List[Tuple[np.ndarray, int, dict]]) -> TensorType["action_space"]:
         """
         Compute the target policy π_k(a) derived from MCTS visit counts.
         
@@ -293,7 +340,8 @@ class MuZeroAgent:
             policy_targets.append(policy_target)
         return torch.stack(policy_targets)
     
-    def compute_value_target(self, trajectory):
+    @typechecked
+    def compute_value_target(self, trajectory: List[Tuple[np.ndarray, int, float, bool]]) -> TensorType["trajectory_length"]:
         """
         Compute the target value v_k based on the game outcome.
         
@@ -320,7 +368,8 @@ class MuZeroAgent:
             value_targets.append(bootstrap_value)
         return torch.tensor(list(reversed(value_targets)))
     
-    def compute_reward_target(self, trajectory):
+    @typechecked
+    def compute_reward_target(self, trajectory: List[Tuple[np.ndarray, int, float]]) -> TensorType["trajectory_length"]:
         """
         Compute the target reward r_k from the trajectory.
         

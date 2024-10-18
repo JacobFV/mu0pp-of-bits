@@ -11,15 +11,16 @@ patch_typeguard()
 class State:
     observation: TensorType["channels", "height", "width"]
     hidden_state: TensorType["hidden_size"] | None = None
+    environment: gym.Env = None  # Add environment to the state
 
     @typechecked
     def is_terminal(self) -> bool:
         # Implement logic to check if the state is terminal
-        # For example, in CartPole, you can check if the pole has fallen
-        return False  # Placeholder
+        # Example for CartPole-v1:
+        return self.environment.env._elapsed_steps >= self.environment.spec.max_episode_steps
 
     @typechecked
-    def next_state(self, action: int, environment: gym.Env) -> Tuple['State', float, bool]:
+    def next_state(self, action: int) -> Tuple['State', float, bool]:
         # Apply the action to the environment and get the next observation and reward
-        observation, reward, done, info = environment.step(action)
-        return State(observation), reward, done
+        observation, reward, done, info = self.environment.step(action)
+        return State(observation=observation, hidden_state=None, environment=self.environment), reward, done

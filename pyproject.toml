@@ -14,6 +14,8 @@ torchaudio = "^2.5.0"
 openrl = "^0.2.0"
 huggingface-tool = "^0.0.6"
 rl-zoo3 = "^2.3.0"
+torchtyping = "^0.1.5"
+typeguard = "^2.13.3"
 
 
 [build-system]

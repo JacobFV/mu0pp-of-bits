@@ -54,7 +54,7 @@ class MuZeroNetwork(nn.Module):
         self.action_embedding = nn.Embedding(config.action_space_size, config.action_embedding_size)
 
     @typechecked
-    def representation(self, observation: TensorType["batch", "channels", "height", "width"]) -> TensorType["batch", "hidden_size"]:
+    def representation(self, observation: TensorType["batch", "observation_channels", "height", "width"]) -> TensorType["batch", "hidden_size"]:
         """
         Encode the observation into a hidden state.
 
@@ -66,6 +66,7 @@ class MuZeroNetwork(nn.Module):
         """
         # Pass the observation through the representation network
         hidden_state = self.representation_network(observation)
+        assert hidden_state.shape == (self.config.batch_size, self.config.hidden_size)
         return hidden_state
 
     @typechecked

@@ -90,6 +90,10 @@ def run_mcts(root: 'Node', network: 'MuZeroNetwork', config: 'MuZeroConfig') -> 
         # For each node in the search path, update N(s_k, a_k), W(s_k, a_k), and Q(s_k, a_k).
         backpropagate(search_path, v_k, config)
 
+    # Collect child visit counts
+    child_visits = {action: child.visit_count for action, child in root.children.items()}
+    return {'child_visits': child_visits}
+
 
 def backpropagate(search_path: List['Node'], value: float, config: 'MuZeroConfig') -> None:
     """

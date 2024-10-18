@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from torchtyping import TensorType
+from typing import Tuple
 
 @dataclass
 class MuZeroConfig:
@@ -9,7 +10,7 @@ class MuZeroConfig:
 
     # Number of simulations per MCTS search: K
     # Controls the depth and breadth of the search tree.
-    num_simulations: int = 800  # K ∈ ℕ
+    num_simulations: int = 50  # K ∈ ℕ
     # Reference: Determines the number of iterations in MCTS for policy improvement.
 
     # Exploration constant in the UCB formula: c_{puct}
@@ -62,7 +63,7 @@ class MuZeroConfig:
 
     # Number of actions: |A|
     # Total discrete actions available to the agent.
-    action_space_size: int = 10  # |A| ∈ ℕ
+    action_space_size: int = None  #  |A| ∈ ℕ, Set dynamically from environment
     # Reference: Depends on the environment's action space.
 
     # Action embedding size
@@ -71,7 +72,7 @@ class MuZeroConfig:
 
     # Observation channels
     # Number of channels in the observation.
-    observation_channels: int = 3  # ∈ ℕ
+    observation_channels: int = None  # ∈ ℕ, Set dynamically from environment
     # Depends on the environment (e.g., RGB images would have 3 channels).
 
     # Size of the board or input dimensions
@@ -79,8 +80,7 @@ class MuZeroConfig:
     # Reference: Height and width of the input observations (e.g., an 8x8 board).
 
     # Environment-specific parameters
-    action_space_size: int = None
-    observation_shape: tuple = None
+    observation_shape: Tuple[int, ...] = None  # Set dynamically from environment
 
     # ====================
     # Optimization Parameters

@@ -15,6 +15,7 @@ if __name__ == "__main__":
     config = MuZeroConfig(
         action_space_size=env.action_space.n,
         observation_shape=env.observation_space.shape,
+        observation_channels=env.observation_space.shape[0] if len(env.observation_space.shape) > 0 else 1,
         # Include any other necessary configurations
     )
 

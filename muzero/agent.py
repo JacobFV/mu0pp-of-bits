@@ -1,18 +1,21 @@
 import torch
 import torch.optim as optim
 import random
+import gym
 
 from muzero.network import MuZeroNetwork
-from muzero.mcts import Node, run_mcts, select_action
+from muzero.mcts import Node, run_mcts
+from muzero.state import State  # Ensure you have a State class
 
 
 class MuZeroAgent:
-    def __init__(self, config):
+    def __init__(self, config, environment):
         """
         Initialize the MuZero agent with the given configuration.
         
         Parameters:
             config (MuZeroConfig): Configuration parameters containing hyperparameters.
+            environment (Environment): The environment for the agent to interact with.
         
         Mathematical Components:
             - θ: Neural network parameters encompassing h_θ, g_θ, f_θ.
@@ -20,6 +23,7 @@ class MuZeroAgent:
             - α: Learning rate for optimizer.
         """
         self.config = config
+        self.environment = environment  # Include the environment
         
         # Initialize the neural network parameterized by θ.
         # θ encompasses parameters for h_θ (representation), g_θ (dynamics), and f_θ (prediction).
@@ -91,7 +95,7 @@ class MuZeroAgent:
             run_mcts(root, self.network, self.config)
             
             # Select action a_t based on MCTS visit counts and probabilistic sampling.
-            action = select_action(root, self.config)
+            action = self.select_action(root)
             
             # Record the current state observation and selected action.
             game.append((state.observation, action))
@@ -101,6 +105,13 @@ class MuZeroAgent:
         
         # Add the completed game trajectory τ to the replay buffer D.
         self.replay_buffer.append(game)
+    
+    def select_action(self, root):
+        # Implement your action selection logic
+        # Typically, you select the action with the highest visit count
+        visit_counts = [(child.visit_count, action) for action, child in root.children.items()]
+        _, action = max(visit_counts)
+        return action
     
     def sample_batch(self):
         """
@@ -234,6 +245,7 @@ class MuZeroAgent:
             saved state_dict ↦ θ
         """
         self.network.load_state_dict(torch.load(path))
+    
     def initial_state(self):
         """
         Initialize the starting state s₀ of the environment.
@@ -245,10 +257,10 @@ class MuZeroAgent:
             s₀ = h_θ(o₀)
         """
         # Create an initial observation based on the environment
-        initial_observation = self.config.environment.reset()
+        initial_observation = self.environment.reset()
         
         # Apply the representation function h_θ to get the initial hidden state
-        initial_hidden_state = self.network.representation(initial_observation)
+        initial_hidden_state = self.network.representation(torch.tensor(initial_observation).float().unsqueeze(0))
         
         # Create and return a State object
         return State(observation=initial_observation, hidden_state=initial_hidden_state)

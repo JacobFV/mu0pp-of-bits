@@ -61,12 +61,12 @@ class MuZeroConfig:
 
     # Number of actions: |A|
     # Total discrete actions available to the agent.
-    self.action_space_size = 10  # |A| ∈ ℕ
+    action_space_size = 10  # |A| ∈ ℕ
     # Reference: Depends on the environment's action space.
 
     # Action embedding size
     # Size of the action embedding vector used in dynamics network.
-    self.action_embedding_size = 6  # ∈ ℕ
+    action_embedding_size = 6  # ∈ ℕ
 
     # Observation channels
     # Number of channels in the observation.
@@ -76,6 +76,10 @@ class MuZeroConfig:
     # Size of the board or input dimensions
     board_size = 8  # ∈ ℕ
     # Reference: Height and width of the input observations (e.g., an 8x8 board).
+
+    # Environment-specific parameters
+    action_space_size: int = None
+    observation_shape: tuple = None
 
     # ====================
     # Optimization Parameters

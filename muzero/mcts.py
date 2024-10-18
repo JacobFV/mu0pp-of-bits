@@ -1,6 +1,7 @@
 import math
 import random
 
+import torch
 
 def run_mcts(root, network, config):
     """

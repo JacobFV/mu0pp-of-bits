@@ -234,7 +234,6 @@ class MuZeroAgent:
             saved state_dict ↦ θ
         """
         self.network.load_state_dict(torch.load(path))
-    
     def initial_state(self):
         """
         Initialize the starting state s₀ of the environment.
@@ -245,8 +244,14 @@ class MuZeroAgent:
         Mathematical Representation:
             s₀ = h_θ(o₀)
         """
-        # Implementation depends on the specific environment.
-        pass
+        # Create an initial observation based on the environment
+        initial_observation = self.config.environment.reset()
+        
+        # Apply the representation function h_θ to get the initial hidden state
+        initial_hidden_state = self.network.representation(initial_observation)
+        
+        # Create and return a State object
+        return State(observation=initial_observation, hidden_state=initial_hidden_state)
     
     # ====================
     # Auxiliary Functions
@@ -264,14 +269,17 @@ class MuZeroAgent:
             - Σ_{b} N(s_k, b): Total visit counts over all actions at state s_k
         
         Parameters:
-            trajectory (list): A list of (observation, action) tuples.
+            trajectory (list): A list of (observation, action, mcts_info) tuples.
         
         Returns:
             policy_target (torch.Tensor): Target policy distribution over actions.
         """
-        # Placeholder for actual implementation.
-        # Example: Compute visit counts from MCTS and normalize.
-        pass
+        policy_targets = []
+        for _, _, mcts_info in trajectory:
+            visit_counts = torch.tensor([mcts_info.child_visits[a] for a in range(self.config.action_space)])
+            policy_target = visit_counts / visit_counts.sum()
+            policy_targets.append(policy_target)
+        return torch.stack(policy_targets)
     
     def compute_value_target(self, trajectory):
         """
@@ -285,13 +293,20 @@ class MuZeroAgent:
             - V(s): Value function estimate from the neural network
         
         Parameters:
-            trajectory (list): A list of (observation, action) tuples.
+            trajectory (list): A list of (observation, action, reward, done) tuples.
         
         Returns:
             value_target (torch.Tensor): Scalar value target.
         """
-        # Placeholder for actual implementation.
-        pass
+        value_targets = []
+        bootstrap_value = 0
+        for observation, action, reward, done in reversed(trajectory):
+            if done:
+                bootstrap_value = 0
+            else:
+                bootstrap_value = reward + self.config.discount * bootstrap_value
+            value_targets.append(bootstrap_value)
+        return torch.tensor(list(reversed(value_targets)))
     
     def compute_reward_target(self, trajectory):
         """
@@ -301,10 +316,9 @@ class MuZeroAgent:
             r_k = R(s_k, a_k)
         
         Parameters:
-            trajectory (list): A list of (observation, action) tuples.
+            trajectory (list): A list of (observation, action, reward) tuples.
         
         Returns:
             reward_target (torch.Tensor): Scalar reward target.
         """
-        # Placeholder for actual implementation.
-        pass
+        return torch.tensor([reward for _, _, reward in trajectory])

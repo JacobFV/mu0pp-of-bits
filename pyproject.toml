@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "mu0pp-of-bits"
+version = "0.1.0"
+description = ""
+authors = ["Jacob Valdez <jacob@deepshard.org>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+torch = "^2.5.0"
+torchvision = "^0.20.0"
+torchaudio = "^2.5.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
